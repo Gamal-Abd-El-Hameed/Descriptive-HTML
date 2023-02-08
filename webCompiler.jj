@@ -1,0 +1,167 @@
+PARSER_BEGIN(WEB_COMPILER)
+import java.io.*;
+public class WEB_COMPILER {
+  public static void main(String args[]) throws ParseException {
+    WEB_COMPILER parser = new WEB_COMPILER(System.in);
+    try{
+    String fullHtmlCode = parser.Input();
+    System.out.println(fullHtmlCode);
+    }catch (Exception e){
+        System.out.println("ERROR :: THERE IS ERROR IN YOUR CODE :: TRY AGAIN");
+    }
+  }
+
+}
+class AttributesParser{
+String text = "";
+String font = "";
+String color = "";
+String links = "";
+}
+PARSER_END(WEB_COMPILER)
+
+TOKEN : { < qoute : "\"" >}
+TOKEN : { < alphanumeric : (["0" -"9"]) | (["A" -"Z"]) | (["a" -"z"]) |  "/" | ":" | "." | "_" | " ">}
+SKIP : {"\t" | "\r"}
+
+
+String Input() :
+{
+ String fullHtmlCode = "";
+ String partialCode = "";
+}
+{
+    (partialCode = create() {fullHtmlCode += partialCode + "\n";} "\n")*
+    {
+        BufferedWriter output = null;
+             try {
+                 System.out.println();
+                 File file = new File("D:\\myWebPage.html");
+                 output = new BufferedWriter(new FileWriter(file));
+                 output.write(fullHtmlCode);
+                  output.close();
+             } catch ( IOException e ) {
+                 e.printStackTrace();
+             }
+             return fullHtmlCode;} "\n"
+}
+String create ():{String htmlCode;}
+{
+    "ADD " htmlCode = element()
+    {return htmlCode;}
+}
+
+ String element():
+ {String elementCode = "";}
+ {
+    ("IMAGE " "WITH " "SOURCE " elementCode = img() | "HEADING " elementCode = header() | "PARAGRAPH " elementCode = para() | "LINK " elementCode = url())
+    {return elementCode;}
+ }
+
+ String img():
+  {String imgUrl = "";}
+  {
+      <qoute> imgUrl = sentence() <qoute>
+     {return "<img src=\"" + imgUrl + "\" />";}
+  }
+
+  String url():
+    {AttributesParser parser = new AttributesParser();}
+    {
+        decorated_url(parser)
+       { if (parser.color.equals("") && parser.font.equals(""))
+            return "<a " + parser.links + ">" + parser.text + "</a>";
+        else
+             return "<a " + parser.links + " style = \"" + parser.color + parser.font + "\">" + parser.text + "</a>";}
+    }
+
+  String header():
+    {AttributesParser parser = new AttributesParser();}
+    {
+        decorated_text(parser)
+       { if (parser.color.equals("") && parser.font.equals(""))
+            return "<h1>" + parser.text + "</h1>";
+         else
+             return "<h1 style = \"" + parser.color + parser.font + "\">" + parser.text + "</h1>";}
+    }
+
+ String para():
+    {AttributesParser parser = new AttributesParser();}
+    {
+            decorated_text(parser)
+         { if (parser.color.equals("") && parser.font.equals(""))
+            return "<p>" + parser.text + "</p>";
+          else
+             return "<p style = \"" + parser.color + parser.font + "\">" + parser.text + "</p>";}
+    }
+
+void decorated_url(AttributesParser parser):
+    { String text = "";
+      String color = "";
+      String font = "";
+      String linkText = "";}
+    {
+            "WITH " ("LINK " linkText = link() | "TEXT " text = text() | "COLOR " color = color() | "FONT " font = font()) (" AND " decorated_url(parser))*
+
+            {if (parser.links.equals(""))
+                    parser.links = linkText;
+             parser.text = text + parser.text;
+             parser.color = color + parser.color;
+             parser.font = font + parser.font;}
+    }
+
+void decorated_text(AttributesParser parser):{
+ String text = "";
+ String color = "";
+ String font = "";
+ }
+{
+    "WITH " ( "TEXT " text = text() | "COLOR " color = color() | "FONT " font = font() )  (" AND " decorated_text(parser))*
+
+    {parser.text = text + parser.text;
+     parser.color = color + parser.color;
+     parser.font = font + parser.font;}
+}
+
+
+String text():{
+String insertedText;
+}
+{
+    <qoute> insertedText = sentence() <qoute>
+   {return insertedText;}
+}
+
+String color():{
+String insertedText;
+}
+{
+   <qoute> insertedText = sentence() <qoute>
+   {return "color:" + insertedText + ";";}
+}
+
+String link():{
+String insertedLink;
+}
+{
+   <qoute> insertedLink = sentence() <qoute>
+   {return "href = \"" + insertedLink + "\"";}
+}
+
+String font():{
+String insertedText;
+}
+{
+    <qoute> insertedText = sentence() <qoute>
+   {return "font-family:" + insertedText + ";";}
+}
+
+String sentence ():{
+ String text = "";
+ Token alpha;
+ }{
+   alpha = <alphanumeric> (text =  sentence())*
+   { return alpha.image + text;}
+ }
+
+
