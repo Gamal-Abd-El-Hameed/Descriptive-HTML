@@ -1,5 +1,4 @@
 # Descriptive-HTML
-## Objective
 A program that implements a simple grammar for a declarative language that defines the web page instead of the HTML using JavaCC.
 The language describes the web page (WHAT the user needs?) instead of telling the browser (HOW to render the page?). For example, the user will write something like the following:
 
